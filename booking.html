@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Book a Trip – Karunadu Travels</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">Karunadu Travels</div>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="packages.html">Packages</a>
+        <a href="booking.html" class="btn-small active">Book</a>
+    </nav>
+</header>
+
+<section class="form-section">
+    <h2>Book Your Journey</h2>
+
+    <form id="bookingForm" class="booking-form">
+
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="tel" name="phone" placeholder="Phone Number" required>
+
+        <select name="from_city" required>
+            <option value="">-- Select From City --</option>
+            <option value="Bangalore">Bangalore</option>
+            <option value="Mysuru">Mysuru</option>
+            <option value="Mangalore">Mangalore</option>
+            <option value="Hubli">Hubli</option>
+            <option value="Belagavi">Belagavi</option>
+            <option value="Shivamogga">Shivamogga</option>
+        </select>
+
+        <select name="to_city" id="packageSelect" required>
+            <option value="">-- Select Tour Package --</option>
+            <option value="Mysuru Palace Tour" data-price="2500">Mysuru Palace Tour – ₹2500</option>
+            <option value="Coorg Scenic Trip" data-price="3200">Coorg Scenic Trip – ₹3200</option>
+            <option value="Hampi Heritage Tour" data-price="2800">Hampi Heritage Tour – ₹2800</option>
+            <option value="Jog Falls Trip" data-price="3000">Jog Falls Trip – ₹3000</option>
+            <option value="Gokarna Beach Tour" data-price="3500">Gokarna Beach Tour – ₹3500</option>
+            <option value="Chikkamagaluru Coffee Hills Tour" data-price="3400">Chikkamagaluru Coffee Hills Tour – ₹3400</option>
+            <option value="Udupi Coastal Tour" data-price="3300">Udupi Coastal Tour – ₹3300</option>
+            <option value="Bandipur Safari Tour" data-price="3600">Bandipur Safari Tour – ₹3600</option>
+        </select>
+
+        <input type="date" name="journey_date" required>
+        <input type="number" name="seats" id="seats" value="1" min="1">
+        <input type="text" name="price" id="price" placeholder="Total Price" readonly>
+
+        <button type="submit" class="btn-primary">Confirm Booking</button>
+    </form>
+
+    <div id="popup" class="popup">✅ Booking Confirmed Successfully!</div>
+</section>
+
+<footer>
+    © 2025 Karunadu Travels • All Rights Reserved
+</footer>
+
+<script>
+/* -------------------------------
+   PRICE CALCULATION
+--------------------------------*/
+const packageSelect = document.getElementById("packageSelect");
+const seatsInput = document.getElementById("seats");
+const priceInput = document.getElementById("price");
+
+function updatePrice() {
+    const selected = packageSelect.options[packageSelect.selectedIndex];
+    const basePrice = selected.getAttribute("data-price");
+    const seats = seatsInput.value || 1;
+
+    if (basePrice) {
+        priceInput.value = "₹ " + (basePrice * seats);
+    } else {
+        priceInput.value = "";
+    }
+}
+
+packageSelect.addEventListener("change", updatePrice);
+seatsInput.addEventListener("input", updatePrice);
+
+/* -------------------------------
+   BOOKING MICROSERVICE FETCH
+--------------------------------*/
+document.getElementById("bookingForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        const res = await fetch("http://localhost:5001/book", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+            throw new Error("HTTP error " + res.status);
+        }
+
+        const result = await res.json();
+
+        if (result.success === true) {
+            document.getElementById("popup").style.display = "block";
+            setTimeout(() => {
+                document.getElementById("popup").style.display = "none";
+            }, 3000);
+            this.reset();
+            priceInput.value = "";
+        } else {
+            alert("Booking failed");
+        }
+
+    } catch (err) {
+        console.error("Booking error:", err);
+        alert("Booking failed");
+    }
+});
+</script>
+
+</body>
+</html>
